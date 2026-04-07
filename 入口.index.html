@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中史遊戲學習館</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080303;color:#f5e6c8;font-family:'Noto Serif TC','STSong','SimSun',serif;min-height:100vh;overflow-x:hidden}
+
+/* ===== HERO ===== */
+.hero{position:relative;background:linear-gradient(170deg,#1c0808 0%,#0a0303 60%,#080303 100%);padding:48px 24px 36px;text-align:center;overflow:hidden;border-bottom:1px solid #3a0e0e}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(139,26,26,.18) 0%,transparent 55%),radial-gradient(ellipse at 80% 50%,rgba(139,26,26,.12) 0%,transparent 55%)}
+.deco{position:absolute;font-size:9em;opacity:.04;top:50%;transform:translateY(-50%);user-select:none}
+.deco.l{left:-20px}.deco.r{right:-20px}
+.hero-inner{position:relative;z-index:1}
+.hero-chip{display:inline-block;padding:4px 18px;background:rgba(139,26,26,.45);border:1px solid #8b1a1a;border-radius:20px;font-size:.76em;color:#d4af37;letter-spacing:2px;margin-bottom:18px}
+.hero-title{font-size:2.9em;color:#d4af37;letter-spacing:6px;text-shadow:0 0 40px rgba(212,175,55,.45);margin-bottom:8px}
+.hero-sub{font-size:.95em;color:#8a7060;letter-spacing:3px;margin-bottom:22px}
+.hero-desc{max-width:520px;margin:0 auto 28px;line-height:2.1;color:#c4b090;font-size:.87em}
+.hero-divider{width:200px;height:1px;background:linear-gradient(90deg,transparent,#6b1a1a,transparent);margin:0 auto 24px}
+.hero-stats{display:flex;justify-content:center;gap:44px;flex-wrap:wrap;padding-top:20px;border-top:1px solid rgba(107,26,26,.35)}
+.hs-num{font-size:2.1em;color:#d4af37;font-weight:bold;display:block;line-height:1}
+.hs-lbl{font-size:.7em;color:#7a6050;letter-spacing:1px;margin-top:4px;display:block}
+
+/* ===== FILTER BAR ===== */
+.filter-bar{position:sticky;top:0;z-index:100;background:rgba(8,3,3,.96);backdrop-filter:blur(12px);border-bottom:1px solid #2a0808;padding:10px 20px}
+.filter-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.fl{font-size:.72em;color:#6a5040;margin-right:2px;white-space:nowrap}
+.fb{padding:5px 14px;border-radius:18px;border:1px solid #3a1010;background:transparent;color:#8a7060;cursor:pointer;font-family:inherit;font-size:.8em;letter-spacing:1px;transition:all .2s}
+.fb:hover,.fb.on{background:#7a1515;border-color:#d4af37;color:#d4af37}
+.search-box{margin-left:auto;padding:5px 14px;background:rgba(107,26,26,.15);border:1px solid #3a1010;border-radius:18px;color:#f5e6c8;font-family:inherit;font-size:.8em;width:150px;outline:none;transition:all .25s}
+.search-box:focus{border-color:#d4af37;width:200px}
+.search-box::placeholder{color:#5a4030}
+
+/* ===== MAIN ===== */
+.main{max-width:1100px;margin:0 auto;padding:28px 20px 50px}
+.sec-hdr{display:flex;align-items:center;gap:10px;margin:8px 0 18px}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,#4a1010,transparent)}
+.sec-ttl{font-size:.75em;color:#7a3030;letter-spacing:2px;white-space:nowrap}
+
+/* ===== GRID ===== */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:16px;margin-bottom:40px}
+
+/* ===== CARD ===== */
+.card{position:relative;background:linear-gradient(155deg,rgba(22,7,7,.9),rgba(12,3,3,.95));border:1px solid #2e0a0a;border-radius:12px;padding:20px;transition:all .3s;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.0),transparent);transition:all .3s}
+.card.playable{cursor:pointer}
+.card.playable:hover{border-color:#c9a030;transform:translateY(-5px);box-shadow:0 10px 35px rgba(0,0,0,.6),0 0 25px rgba(212,175,55,.08)}
+.card.playable:hover::before{background:linear-gradient(90deg,transparent,rgba(212,175,55,.5),transparent)}
+.card.locked{opacity:.5;filter:saturate(.3)}
+
+/* Card top */
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:13px}
+.card-era{display:flex;align-items:center;gap:9px}
+.era-icon{font-size:1.9em;line-height:1}
+.era-name{font-size:.7em;color:#8a7060;letter-spacing:1px;line-height:1.4}
+.era-unit{font-size:.65em;color:#5a4030}
+
+/* Status badges */
+.badge{padding:3px 10px;border-radius:12px;font-size:.7em;letter-spacing:1px;white-space:nowrap}
+.b-play{background:rgba(0,150,110,.2);border:1px solid #009670;color:#00c890}
+.b-new{background:rgba(180,110,0,.25);border:1px solid #c07800;color:#f0a030;animation:bpulse 1.8s infinite}
+@keyframes bpulse{0%,100%{opacity:1}50%{opacity:.55}}
+.b-soon{background:rgba(60,40,30,.4);border:1px solid #3a2018;color:#6a5040}
+
+/* Card body */
+.card-topic{font-size:1.15em;color:#f0dfc0;margin-bottom:5px;letter-spacing:1px;line-height:1.45}
+.card-game{font-size:.8em;color:#8a7060;margin-bottom:14px;font-style:italic}
+
+/* Meta tags */
+.card-meta{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}
+.mt{padding:3px 9px;border-radius:4px;font-size:.7em;letter-spacing:1px}
+.mt-type{background:rgba(107,26,26,.35);border:1px solid #4a1212;color:#c08080}
+.mt-time{background:rgba(30,40,65,.4);border:1px solid #1e2840;color:#7090c0}
+.mt-diff{background:rgba(50,40,20,.4);border:1px solid #3a3010;color:#a09060}
+
+/* Footer */
+.card-footer{display:flex;justify-content:space-between;align-items:center}
+.stars{font-size:.82em;letter-spacing:2px}
+.s-on{color:#d4af37}.s-off{color:#2a1a08}
+.play-btn{padding:8px 18px;border-radius:6px;border:1px solid #d4af37;background:linear-gradient(135deg,#6a1212,#9a1e1e);color:#f5e6c8;font-family:inherit;font-size:.82em;letter-spacing:1.5px;cursor:pointer;transition:all .2s}
+.play-btn:hover{background:linear-gradient(135deg,#9a1e1e,#c02828);transform:scale(1.04)}
+.lock-txt{font-size:.75em;color:#4a3020;display:flex;align-items:center;gap:5px}
+
+/* No results */
+.no-res{grid-column:1/-1;text-align:center;padding:60px 20px;color:#5a4030}
+.no-res-icon{font-size:3em;margin-bottom:12px}
+
+/* ===== HOW TO USE ===== */
+.howto{background:rgba(107,26,26,.08);border:1px solid #3a1010;border-radius:12px;padding:28px;margin-bottom:30px}
+.howto-title{color:#d4af37;font-size:1em;letter-spacing:3px;margin-bottom:18px;text-align:center}
+.steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.step{text-align:center;padding:16px 12px;background:rgba(0,0,0,.2);border-radius:8px;border:1px solid #2a0808}
+.step-num{width:32px;height:32px;background:#7a1515;border:1px solid #d4af37;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85em;color:#d4af37;margin:0 auto 10px}
+.step-txt{font-size:.8em;color:#c4b090;line-height:1.7}
+
+/* ===== FOOTER ===== */
+.footer{background:rgba(12,4,4,.7);border-top:1px solid #2a0808;padding:28px 24px;text-align:center}
+.footer-logo{font-size:1.4em;color:#d4af37;letter-spacing:3px;margin-bottom:8px}
+.footer-txt{font-size:.75em;color:#5a4030;line-height:2}
+
+/* Responsive */
+@media(max-width:600px){
+  .hero-title{font-size:1.9em}
+  .hero-stats{gap:22px}
+  .grid{grid-template-columns:1fr}
+  .search-box{display:none}
+  .steps{grid-template-columns:1fr 1fr}
+  .deco{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="deco l">史</div>
+  <div class="deco r">龍</div>
+  <div class="hero-inner">
+    <div class="hero-chip">📚 香港 DSE 中國歷史科 · 互動遊戲學習平台</div>
+    <div class="hero-title">中史遊戲學習館</div>
+    <div class="hero-sub">以遊戲探索歷史 · 讓知識觸手可及</div>
+    <div class="hero-desc">本館收錄中四至中六 DSE 中史科各課題互動學習遊戲<br>透過角色扮演、決策挑戰與密室解謎<br>深度掌握考評局核心考點，備試不再枯燥</div>
+    <div class="hero-divider"></div>
+    <div class="hero-stats">
+      <div><span class="hs-num" id="cnt-play">1</span><span class="hs-lbl">個遊戲可玩</span></div>
+      <div><span class="hs-num" id="cnt-total">12</span><span class="hs-lbl">個課題規劃</span></div>
+      <div><span class="hs-num">DSE</span><span class="hs-lbl">考評局對齊</span></div>
+      <div><span class="hs-num">免費</span><span class="hs-lbl">學生零費用</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <span class="fl">篩選：</span>
+    <button class="fb on" onclick="setFilter('all',this)">全部</button>
+    <button class="fb" onclick="setFilter('甲部',this)">必修甲部</button>
+    <button class="fb" onclick="setFilter('乙部',this)">必修乙部</button>
+    <button class="fb" onclick="setFilter('選修',this)">選修單元</button>
+    <button class="fb" onclick="setFilter('playable',this)">✅ 可遊玩</button>
+    <input class="search-box" type="text" placeholder="🔍 搜尋課題…" oninput="setSearch(this.value)">
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- How to use -->
+  <div class="howto">
+    <div class="howto-title">📖 如何使用本學習館</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-txt">選擇你正在溫習的課題，點擊遊戲卡片</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-txt">進入遊戲，扮演歷史角色，作出決策</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-txt">每次決策後閱讀即時歷史反饋及DSE提示</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-txt">完成後查看得分，重溫薄弱課題</div></div>
+    </div>
+  </div>
+
+  <div class="sec-hdr"><div class="sec-line"></div><span class="sec-ttl">所有學習遊戲</span><div class="sec-line" style="background:linear-gradient(270deg,#4a1010,transparent)"></div></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-logo">🏯 中史遊戲學習館</div>
+  <div class="footer-txt">
+    由 Kafai 老師設計 · 對齊香港考評局 DSE 中國歷史科課程及評估指引<br>
+    遊戲內容僅供教學參考，史實以課本及考評局指引為準<br>
+    持續更新中 · 如有查詢請聯絡科任老師
+  </div>
+</div>
+
+<script>
+const G=[
+  {id:'qing-ethnic',era:'清代（鴉片戰爭前）',icon:'🏯',unit:'必修甲部·第五單元',topic:'清代民族政策',game:'清帝謀臣：民族政策決策室',type:'角色扮演決策',time:'12–15分鐘',diff:2,sec:'甲部',status:'play',url:'YOUR_QING_GAME_URL_HERE'},
+  {id:'ming-power',era:'明代',icon:'🗼',unit:'必修甲部·第五單元',topic:'明代君主集權',game:'洪武大帝的鐵腕',type:'歷史密室逃脫',time:'10–12分鐘',diff:2,sec:'甲部',status:'soon',url:''},
+  {id:'qing-central',era:'清代',icon:'👑',unit:'必修甲部·第五單元',topic:'清代君主集權',game:'軍機大臣的危局',type:'策略解謎',time:'10分鐘',diff:3,sec:'甲部',status:'soon',url:''},
+  {id:'song-central',era:'宋代',icon:'📜',unit:'必修甲部·第五單元',topic:'宋代中央集權',game:'趙官家的削藩之謀',type:'策略配對',time:'10分鐘',diff:2,sec:'甲部',status:'soon',url:''},
+  {id:'yuan-province',era:'元代',icon:'🏕️',unit:'必修甲部·第五單元',topic:'元代行省制度',game:'帝國版圖的設計師',type:'互動地圖',time:'8–10分鐘',diff:1,sec:'甲部',status:'soon',url:''},
+  {id:'tang-politics',era:'隋唐',icon:'⛩️',unit:'必修甲部·第四單元',topic:'唐代盛世與安史之亂',game:'長安謀士的抉擇',type:'角色扮演決策',time:'15分鐘',diff:3,sec:'甲部',status:'soon',url:''},
+  {id:'han-wudi',era:'漢代',icon:'🏹',unit:'必修甲部·第二單元',topic:'漢武帝的文治武功',game:'大漢天子的謀略',type:'問答闖關',time:'10分鐘',diff:2,sec:'甲部',status:'soon',url:''},
+  {id:'qin-unify',era:'秦代',icon:'⚔️',unit:'必修甲部·第二單元',topic:'秦始皇統一六國',game:'一統天下：帝王之路',type:'歷史密室逃脫',time:'12分鐘',diff:2,sec:'甲部',status:'soon',url:''},
+  {id:'opium-war',era:'近代（19世紀）',icon:'⚓',unit:'必修乙部·第一單元',topic:'鴉片戰爭',game:'虎門銷煙：是與非',type:'史料分析遊戲',time:'12分鐘',diff:3,sec:'乙部',status:'soon',url:''},
+  {id:'rev-1911',era:'近代（20世紀初）',icon:'🌟',unit:'必修乙部·第一單元',topic:'辛亥革命',game:'革命前夜的謀士',type:'角色扮演決策',time:'15分鐘',diff:3,sec:'乙部',status:'soon',url:''},
+  {id:'may-fourth',era:'近代（1919年）',icon:'✊',unit:'必修乙部·第二單元',topic:'五四運動與新文化運動',game:'北京街頭1919',type:'情境選擇',time:'10分鐘',diff:2,sec:'乙部',status:'soon',url:''},
+  {id:'confucius',era:'先秦',icon:'📖',unit:'選修單元（一）',topic:'孔子與儒家思想',game:'夫子問答：正名之道',type:'蘇格拉底式問答',time:'12分鐘',diff:3,sec:'選修',status:'soon',url:''},
+  {id:'sima-qian',era:'漢代',icon:'✍️',unit:'選修單元（一）',topic:'司馬遷與《史記》',game:'太史公的抉擇',type:'敘事解謎',time:'15分鐘',diff:3,sec:'選修',status:'soon',url:''},
+  {id:'wang-anshi',era:'宋代',icon:'💰',unit:'選修單元（二）',topic:'王安石變法',game:'熙寧變法：改革者的困境',type:'政策模擬',time:'15分鐘',diff:4,sec:'選修',status:'soon',url:''},
+];
+
+let curFilter='all', curSearch='';
+
+function stars(n){
+  let s='';
+  for(let i=1;i<=5;i++) s+=`<span class="${i<=n?'s-on':'s-off'}">★</span>`;
+  return s;
+}
+
+function statusBadge(s){
+  if(s==='play') return '<span class="badge b-play">✅ 可遊玩</span>';
+  if(s==='new')  return '<span class="badge b-new">🆕 新上線</span>';
+  return '<span class="badge b-soon">🔒 即將推出</span>';
+}
+
+function render(){
+  const grid=document.getElementById('grid');
+  const list=G.filter(g=>{
+    const mf=curFilter==='all'||(curFilter==='playable'&&g.status==='play')||g.sec===curFilter;
+    const ms=curSearch===''||g.topic.includes(curSearch)||g.era.includes(curSearch)||g.game.includes(curSearch);
+    return mf&&ms;
+  });
+
+  if(!list.length){
+    grid.innerHTML=`<div class="no-res"><div class="no-res-icon">🔍</div><div>找不到相關課題，請嘗試其他關鍵字。</div></div>`;
+    return;
+  }
+
+  grid.innerHTML=list.map(g=>{
+    const isPlay=g.status==='play'||g.status==='new';
+    const footer=isPlay
+      ?`<button class="play-btn" onclick="launch('${g.url}','${g.topic}');event.stopPropagation()">▶ 開始遊戲</button>`
+      :`<span class="lock-txt">🔒 即將推出</span>`;
+    return`<div class="card ${isPlay?'playable':'locked'}" ${isPlay?`onclick="launch('${g.url}','${g.topic}')"`:''}> 
+      <div class="card-top">
+        <div class="card-era">
+          <div class="era-icon">${g.icon}</div>
+          <div><div class="era-name">${g.era}</div><div class="era-unit">${g.unit}</div></div>
+        </div>
+        ${statusBadge(g.status)}
+      </div>
+      <div class="card-topic">${g.topic}</div>
+      <div class="card-game">「${g.game}」</div>
+      <div class="card-meta">
+        <span class="mt mt-type">${g.type}</span>
+        <span class="mt mt-time">⏱ ${g.time}</span>
+        <span class="mt mt-diff">${'⭐'.repeat(g.diff)} 難度</span>
+      </div>
+      <div class="card-footer">
+        <div class="stars">${stars(g.diff)}</div>
+        ${footer}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('cnt-play').textContent=G.filter(g=>g.status==='play'||g.status==='new').length;
+  document.getElementById('cnt-total').textContent=G.length;
+}
+
+function setFilter(v,btn){
+  curFilter=v;
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+}
+
+function setSearch(v){curSearch=v;render();}
+
+function launch(url,topic){
+  if(!url||url==='YOUR_QING_GAME_URL_HERE'||url===''){
+    alert('「'+topic+'」遊戲即將推出，敬請期待！\n\n如遊戲已上線，請老師更新連結。');return;
+  }
+  window.open(url,'_blank');
+}
+
+render();
+</script>
+</body>
+</html>
